@@ -1,0 +1,441 @@
+// TVMController.cs
+using System;
+using System.Collections.Generic;
+using System.Data.SqlClient;
+
+namespace TVMSystem
+{
+    public class TVMController
+    {
+        private Transaction currentTransaction;
+        private List<Station> stationList;
+        private PaymentProcessor paymentProcessor;
+        private DatabaseManager dbManager;
+        private Printer printer;
+        
+        public void StartTransaction()
+        {
+            currentTransaction = new Transaction();
+            currentTransaction.TransactionId = GenerateTransactionId();
+            currentTransaction.Timestamp = DateTime.Now;
+            currentTransaction.OriginStation = GetCurrentStation();
+            
+            // Show destination selection screen
+            DisplayStationList();
+        }
+        
+        public void SelectDestination(int stationId)
+        {
+            Station destination = stationList.Find(s => s.StationId == stationId);
+            if (destination != null)
+            {
+                currentTransaction.DestinationStation = destination;
+                currentTransaction.FareAmount = CalculateFare(
+                    currentTransaction.OriginStation.Zone, 
+                    destination.Zone
+                );
+                
+                // Show fare and payment options
+                DisplayFareAndPaymentOptions();
+            }
+        }
+        
+        public bool ProcessPayment(string paymentMethod, string cardNumber = null)
+        {
+            PaymentResult result;
+            
+            if (paymentMethod == "CreditCard")
+            {
+                result = paymentProcessor.ProcessCreditCard(
+                    cardNumber, 
+                    currentTransaction.FareAmount
+                );
+            }
+            else if (paymentMethod == "DigitalWallet")
+            {
+                string qrCode = paymentProcessor.GenerateQRCode(
+                    currentTransaction.FareAmount,
+                    currentTransaction.TransactionId
+                );
+                DisplayQRCode(qrCode);
+                
+                // Poll for payment confirmation
+                result = paymentProcessor.VerifyPayment(currentTransaction.TransactionId);
+            }
+            else
+            {
+                return false;
+            }
+            
+            if (result.IsSuccessful)
+            {
+                currentTransaction.PaymentStatus = "Completed";
+                currentTransaction.PaymentMethod = paymentMethod;
+                return true;
+            }
+            
+            return false;
+        }
+        
+        public void PrintTicket()
+        {
+            Ticket ticket = new Ticket
+            {
+                TicketId = GenerateTicketId(),
+                TransactionId = currentTransaction.TransactionId,
+                PurchaseTime = DateTime.Now,
+                ValidUntil = DateTime.Now.AddMinutes(90),
+                OriginStation = currentTransaction.OriginStation.StationName,
+                DestinationStation = currentTransaction.DestinationStation.StationName,
+                FareAmount = currentTransaction.FareAmount
+            };
+            
+            ticket.GenerateQRCode();
+            
+            bool printSuccess = printer.PrintTicket(ticket);
+            if (printSuccess)
+            {
+                currentTransaction.TicketPrinted = true;
+                dbManager.SaveTransaction(currentTransaction);
+                DisplayConfirmation();
+            }
+            else
+            {
+                HandlePrinterError();
+            }
+        }
+        
+        private double CalculateFare(int originZone, int destinationZone)
+        {
+            // Implement fare calculation based on zone difference
+            int zoneDiff = Math.Abs(destinationZone - originZone);
+            return zoneDiff * 10000; // Example: 10,000 VND per zone
+        }
+        
+        private string GenerateTransactionId()
+        {
+            return $"TXN{DateTime.Now:yyyyMMddHHmmssfff}";
+        }
+        
+        private void HandlePrinterError()
+        {
+            // Log error and notify maintenance
+            ErrorHandler.LogError("Printer malfunction", "Printer out of paper");
+            DisplayErrorMessage("Printer error. Please contact staff.");
+            
+            // Attempt refund if payment was processed
+            if (currentTransaction.PaymentStatus == "Completed")
+            {
+                paymentProcessor.Refund(currentTransaction.TransactionId);
+            }
+        }
+    }
+}
+
+// Transaction.cs
+public class Transaction
+{
+    public string TransactionId { get; set; }
+    public DateTime Timestamp { get; set; }
+    public Station OriginStation { get; set; }
+    public Station DestinationStation { get; set; }
+    public double FareAmount { get; set; }
+    public string PaymentMethod { get; set; }
+    public string PaymentStatus { get; set; }
+    public bool TicketPrinted { get; set; }
+}
+
+// Station.cs
+public class Station
+{
+    public int StationId { get; set; }
+    public string StationName { get; set; }
+    public string StationCode { get; set; }
+    public int Zone { get; set; }
+    public bool IsActive { get; set; }
+}
+
+// DatabaseManager.cs
+public class DatabaseManager
+{
+    private string connectionString;
+    
+    public DatabaseManager(string connString)
+    {
+        connectionString = connString;
+    }
+    
+    public bool SaveTransaction(Transaction transaction)
+    {
+        using (SqlConnection conn = new SqlConnection(connectionString))
+        {
+            try
+            {
+                conn.Open();
+                string query = @"
+                    INSERT INTO Transactions 
+                    (TransactionId, Timestamp, OriginStation, DestinationStation, 
+                     FareAmount, PaymentMethod, PaymentStatus, TicketPrinted)
+                    VALUES 
+                    (@TransactionId, @Timestamp, @OriginStation, @DestinationStation,
+                     @FareAmount, @PaymentMethod, @PaymentStatus, @TicketPrinted)";
+                
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@TransactionId", transaction.TransactionId);
+                    cmd.Parameters.AddWithValue("@Timestamp", transaction.Timestamp);
+                    cmd.Parameters.AddWithValue("@OriginStation", transaction.OriginStation.StationName);
+                    cmd.Parameters.AddWithValue("@DestinationStation", transaction.DestinationStation.StationName);
+                    cmd.Parameters.AddWithValue("@FareAmount", transaction.FareAmount);
+                    cmd.Parameters.AddWithValue("@PaymentMethod", transaction.PaymentMethod);
+                    cmd.Parameters.AddWithValue("@PaymentStatus", transaction.PaymentStatus);
+                    cmd.Parameters.AddWithValue("@TicketPrinted", transaction.TicketPrinted);
+                    
+                    int rowsAffected = cmd.ExecuteNonQuery();
+                    return rowsAffected > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandler.LogError("Database error", ex.Message);
+                return false;
+            }
+        }
+    }
+    
+    public List<Station> GetStations()
+    {
+        List<Station> stations = new List<Station>();
+        
+        using (SqlConnection conn = new SqlConnection(connectionString))
+        {
+            conn.Open();
+            string query = "SELECT * FROM Stations WHERE IsActive = 1 ORDER BY StationCode";
+            
+            using (SqlCommand cmd = new SqlCommand(query, conn))
+            using (SqlDataReader reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    stations.Add(new Station
+                    {
+                        StationId = (int)reader["StationId"],
+                        StationName = (string)reader["StationName"],
+                        StationCode = (string)reader["StationCode"],
+                        Zone = (int)reader["Zone"],
+                        IsActive = (bool)reader["IsActive"]
+                    });
+                }
+            }
+        }
+        
+        return stations;
+    }
+}
+
+// SQL Database Schema
+/*
+CREATE DATABASE TVMSystem;
+GO
+
+USE TVMSystem;
+GO
+
+CREATE TABLE Stations (
+    StationId INT PRIMARY KEY IDENTITY(1,1),
+    StationName NVARCHAR(100) NOT NULL,
+    StationCode VARCHAR(10) NOT NULL UNIQUE,
+    Zone INT NOT NULL,
+    IsActive BIT DEFAULT 1
+);
+
+CREATE TABLE Transactions (
+    TransactionId VARCHAR(50) PRIMARY KEY,
+    Timestamp DATETIME NOT NULL,
+    OriginStation NVARCHAR(100) NOT NULL,
+    DestinationStation NVARCHAR(100) NOT NULL,
+    FareAmount DECIMAL(10,2) NOT NULL,
+    PaymentMethod VARCHAR(20) NOT NULL,
+    PaymentStatus VARCHAR(20) NOT NULL,
+    TicketPrinted BIT DEFAULT 0,
+    CreatedDate DATETIME DEFAULT GETDATE()
+);
+
+CREATE TABLE ErrorLogs (
+    LogId INT PRIMARY KEY IDENTITY(1,1),
+    ErrorCode VARCHAR(50),
+    ErrorMessage NVARCHAR(500),
+    TransactionId VARCHAR(50),
+    LogTimestamp DATETIME DEFAULT GETDATE(),
+    MachineId VARCHAR(50)
+);
+
+-- Insert sample stations for Ben Thanh - Suoi Tien line
+INSERT INTO Stations (StationName, StationCode, Zone) VALUES
+('Ben Thanh', 'BTH', 1),
+('Opera House', 'OPH', 1),
+('Ba Son', 'BSN', 2),
+('Saigon River', 'SGR', 2),
+('Thu Thiem', 'TTM', 3),
+('Thu Thiem 2', 'TT2', 3),
+('Thu Thiem 3', 'TT3', 3),
+('Thanh My Loi', 'TML', 4),
+('Binh Thai', 'BTH', 4),
+('Hiep Binh Phuoc', 'HBP', 5),
+('Linh Chieu', 'LCD', 5),
+('Thu Duc', 'TDC', 6),
+('Binh Chieu', 'BCH', 6),
+('Suoi Tien', 'STN', 7);
+*/
+
+// Main Form (Windows Forms Application)
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+using System.Collections.Generic;
+
+namespace TVMSystem
+{
+    public partial class TVMMainForm : Form
+    {
+        private TVMController controller;
+        private List<Station> stations;
+        
+        public TVMMainForm()
+        {
+            InitializeComponent();
+            controller = new TVMController();
+            InitializeUI();
+        }
+        
+        private void InitializeUI()
+        {
+            // Set up main form
+            this.Text = "HCMC Metro Ticket Vending Machine";
+            this.Size = new Size(1024, 768);
+            this.BackColor = Color.LightGray;
+            
+            // Welcome screen
+            lblWelcome = new Label
+            {
+                Text = "Welcome to HCMC Metro\n\nPress START to begin",
+                Font = new Font("Arial", 24, FontStyle.Bold),
+                TextAlign = ContentAlignment.MiddleCenter,
+                Dock = DockStyle.Fill
+            };
+            
+            btnStart = new Button
+            {
+                Text = "START",
+                Font = new Font("Arial", 18, FontStyle.Bold),
+                Size = new Size(200, 80),
+                BackColor = Color.Green,
+                ForeColor = Color.White
+            };
+            btnStart.Click += BtnStart_Click;
+            
+            // Station selection screen
+            panelStations = new FlowLayoutPanel
+            {
+                Visible = false,
+                Dock = DockStyle.Fill
+            };
+            
+            // Payment screen
+            panelPayment = new Panel
+            {
+                Visible = false,
+                Dock = DockStyle.Fill
+            };
+            
+            // Add controls to form
+            this.Controls.Add(lblWelcome);
+            this.Controls.Add(btnStart);
+            this.Controls.Add(panelStations);
+            this.Controls.Add(panelPayment);
+        }
+        
+        private void BtnStart_Click(object sender, EventArgs e)
+        {
+            lblWelcome.Visible = false;
+            btnStart.Visible = false;
+            
+            // Load stations
+            stations = controller.GetStations();
+            DisplayStationButtons();
+            panelStations.Visible = true;
+        }
+        
+        private void DisplayStationButtons()
+        {
+            panelStations.Controls.Clear();
+            
+            foreach (var station in stations)
+            {
+                Button btnStation = new Button
+                {
+                    Text = $"{station.StationName}\n({station.StationCode})",
+                    Tag = station.StationId,
+                    Size = new Size(200, 80),
+                    Font = new Font("Arial", 12),
+                    Margin = new Padding(10)
+                };
+                btnStation.Click += BtnStation_Click;
+                panelStations.Controls.Add(btnStation);
+            }
+        }
+        
+        private void BtnStation_Click(object sender, EventArgs e)
+        {
+            Button btn = (Button)sender;
+            int stationId = (int)btn.Tag;
+            
+            controller.SelectDestination(stationId);
+            
+            // Show fare and payment options
+            panelStations.Visible = false;
+            DisplayPaymentOptions();
+            panelPayment.Visible = true;
+        }
+        
+        private void DisplayPaymentOptions()
+        {
+            panelPayment.Controls.Clear();
+            
+            Label lblFare = new Label
+            {
+                Text = $"Fare: {controller.CurrentFare.ToString("C")}",
+                Font = new Font("Arial", 20, FontStyle.Bold),
+                Dock = DockStyle.Top,
+                Height = 60,
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+            
+            Button btnCreditCard = new Button
+            {
+                Text = "Credit Card",
+                Font = new Font("Arial", 16),
+                Size = new Size(300, 80),
+                BackColor = Color.Blue,
+                ForeColor = Color.White,
+                Tag = "CreditCard"
+            };
+            btnCreditCard.Click += BtnPayment_Click;
+            
+            Button btnDigitalWallet = new Button
+            {
+                Text = "Digital Wallet (MoMo/VNPay)",
+                Font = new Font("Arial", 16),
+                Size = new Size(300, 80),
+                BackColor = Color.Orange,
+                ForeColor = Color.White,
+                Tag = "DigitalWallet"
+            };
+            btnDigitalWallet.Click += BtnPayment_Click;
+            
+            panelPayment.Controls.Add(lblFare);
+            panelPayment.Controls.Add(btnCreditCard);
+            panelPayment.Controls.Add(btnDigitalWallet);
+        }
+    }
+}
