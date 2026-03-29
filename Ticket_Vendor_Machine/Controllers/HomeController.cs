@@ -14,8 +14,13 @@ namespace Ticket_Vendor_Machine.Controllers
             return View();
         }
 
-        public ActionResult Payment()
+        public ActionResult Payment(string toStation, int qty, string total, string lang = "vn")
         {
+            ViewBag.ToStation = toStation ?? "---";
+            ViewBag.Quantity = qty;
+            ViewBag.Total = total ?? "0 VNĐ";
+            ViewBag.Lang = lang; // Lưu ngôn ngữ vào ViewBag
+
             return View();
         }
         private readonly FareCalculator _fareCalc = new FareCalculator();

@@ -66,7 +66,7 @@
             background: white;
             border: 2px solid #2980b9;
             padding: 10px;
-            border-radius: 20px;
+/*            border-radius: 0px;*/
             font-weight: bold;
         }
 
@@ -100,9 +100,9 @@
 
     <div class="tvm-container">
         <div class="side-panel">
-            <button class="btn-menu" id="menu-buy">MUA VÉ<br /><small>BUY TICKET</small></button>
-            <button class="btn-menu active" id="menu-sjt">VÉ MỘT CHẶNG<br /><small>(SJT)</small></button>
-            <button class="btn-menu" id="menu-refund">TRẢ LẠI VÉ<br /><small>REFUND</small></button>
+            <button class="btn-menu" id="menu-buy">MUA VÉ</button>
+            <button class="btn-menu active" id="menu-sjt">VÉ MỘT CHẶNG</button>
+            <button class="btn-menu" id="menu-refund">TRẢ LẠI VÉ</button>
 
             <div class="lang-switch">
                 <button class="btn btn-lang btn-light btn-sm" data-lang="vn">VN</button>
@@ -118,8 +118,8 @@
             </div>
 
             <div class="mt-5 text-center">
-                <button class="btn btn-primary btn-lg px-5" id="btn-next">TIẾP THEO / NEXT</button>
-                <button class="btn btn-danger btn-lg px-5" id="btn-cancell">HỦY / CANCEL</button>
+                <button class="btn btn-primary btn-lg px-5" id="btn-next">TIẾP THEO</button>
+                <button class="btn btn-danger btn-lg px-5" id="btn-cancell">HỦY</button>
             </div>
         </div>
 
@@ -194,62 +194,6 @@
         });
     }
 
-        $(document).ready(function () {
-            renderStations();
-
-            // Chuyển đổi ngôn ngữ
-            $('.btn-lang').click(function () {
-                $('.btn-lang').removeClass('btn-light').addClass('btn-outline-light');
-                $(this).addClass('btn-light').removeClass('btn-outline-light');
-
-                currentLang = $(this).data('lang');
-                renderStations();
-                updateStaticText();
-
-                // Reset thông tin chặng khi đổi ngôn ngữ để tránh sai lệch tên ga
-                $('#txtTo').text('---');
-                $('#txtUnitPrice').text('0 VNĐ');
-                $('#txtTotal').text('0 VNĐ');
-            });
-
-            // Chọn ga (Dùng delegation xử lý động)
-            $(document).on('click', '.btn-station', function () {
-                $('.btn-station').removeClass('selected-to');
-                $(this).addClass('selected-to');
-
-                const name = $(this).data('name');
-                $('#txtTo').text(name);
-
-                // Giả lập tính tiền (Sẽ thay bằng Ajax gọi SQL sau)
-                $('#txtUnitPrice').text("15.000 VNĐ");
-                $('#txtTotal').text("15.000 VNĐ");
-            });
-
-            $('#btn-next').click(function () {
-                const toStation = $('#txtTo').text();
-                const qty = quantity;
-                const total = $('#txtTotal').text();
-
-                if (toStation === '---') {
-                    alert(currentLang === 'vn' ? "Vui lòng chọn ga đến!" : "Please select destination!");
-                    return;
-                }
-
-                // Chuyển hướng sang Action Payment trong HomeController kèm tham số
-                window.location.href = `/Home/Payment?toStation=${toStation}&qty=${qty}&total=${total}`;
-            });
-
-            // Nút Hủy (Cancel Transaction)
-            $('#btn-cancell').click(function () {
-                $('.btn-station').removeClass('selected-to');
-                $('#txtTo').text('---');
-                $('#txtUnitPrice').text('0 VNĐ');
-                $('#txtTotal').text('0 VNĐ');
-                console.log("Giao dịch đã hủy.");
-            });
-        });
-    }
-
     function renderStations() {
         $('#stationList').empty();
         stations.forEach(function (s) {
@@ -269,6 +213,7 @@
             $('#lbl-start').text('Departure:');
             $('#btn-next').text('NEXT');
             $('#btn-cancell').text('CANCEL');
+            $('#menu-sjt').text('Single Journey Ticket')
             $('#lbl-ticket-type').text('Ticket Type:');
             $('#val-ticket-type').text('Single Journey Ticket');
             $('#lbl-from').text('From:');
@@ -354,11 +299,22 @@
             $('.btn-station').removeClass('selected-to');
         });
 
-        // Next — hook up to your payment controller when ready
         $('#btn-next').click(function () {
-            if (!selectedDestId) return;
-            // window.location.href = '/Payment/Index?destId=' + selectedDestId + '&qty=' + currentQty;
-            alert('destId=' + selectedDestId + ', qty=' + currentQty);
+            // 1. Kiểm tra nếu người dùng chưa chọn ga
+            if (!selectedDestId || $('#txtTo').text() === '---') {
+                const msg = (currentLang === 'vn') ? "Vui lòng chọn ga đến!" : "Please select destination!";
+                alert(msg);
+                return;
+            }
+
+            // 2. Lấy dữ liệu hiện tại từ giao diện
+            const toStation = $('#txtTo').text();
+            const qty = currentQty;
+            const total = $('#txtTotal').text();
+
+            // 3. Chuyển hướng sang Action Payment trong HomeController
+            // Dữ liệu sẽ được truyền qua Query String (?key=value)
+            window.location.href = `/Home/Payment?toStation=${encodeURIComponent(toStation)}&qty=${qty}&total=${encodeURIComponent(total)}`;
         });
     });
     </script>
