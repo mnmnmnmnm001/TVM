@@ -138,6 +138,12 @@
                 <p class="mb-1">Đến: <strong>@ViewBag.ToStation</strong></p>
                 <p class="mb-3">Số lượng: <strong>@ViewBag.Quantity</strong></p>
 
+                <p class="mb-2">Loại vé: <strong>@(ViewBag.TicketTypeLabel ?? "Vé một chặng")</strong></p>
+                @if((string)ViewBag.TicketType == "1day")
+                {
+                    <p class="mb-2 small">Hiệu lực đến: <strong>@ViewBag.ValidUntil</strong></p>
+                }
+
                 <p class="mb-0">TỔNG TIỀN:</p>
                 <p class="price-big" style="color: #e74c3c; font-size: 2rem; font-weight: bold;">
                     @ViewBag.Total
