@@ -1,0 +1,50 @@
+﻿@model Ticket_Vendor_Machine.Models.FareStep
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>FareStep</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.FromStationCount)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.FromStationCount)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ToStationCount)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ToStationCount)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.CashPrice)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CashPrice)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.NonCashPrice)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.NonCashPrice)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.StepID }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>

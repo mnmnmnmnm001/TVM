@@ -1,0 +1,51 @@
+﻿@model IEnumerable<Ticket_Vendor_Machine.Models.FareStep>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.FromStationCount)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ToStationCount)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CashPrice)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.NonCashPrice)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.FromStationCount)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.ToStationCount)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.CashPrice)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.NonCashPrice)
+        </td>
+        <td>
+            @Html.ActionLink("Edit", "Edit", new { id=item.StepID }) |
+            @Html.ActionLink("Details", "Details", new { id=item.StepID }) |
+            @Html.ActionLink("Delete", "Delete", new { id=item.StepID })
+        </td>
+    </tr>
+}
+
+</table>

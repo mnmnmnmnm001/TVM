@@ -1,0 +1,42 @@
+﻿@model Ticket_Vendor_Machine.Models.Station
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>Station</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.NameVN)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.NameVN)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.NameEN)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.NameEN)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.StationOrder)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.StationOrder)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.StationID }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>
