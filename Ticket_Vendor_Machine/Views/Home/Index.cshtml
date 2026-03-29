@@ -106,9 +106,9 @@
     <div class="tvm-container">
         <div class="side-panel">
 			<div>
-				<button class="btn-menu active mb-2" data-type="single">VÉ MỘT CHẶNG</button>
-				<button class="btn-menu mb-2" data-type="1day">VÉ MỘT NGÀY</button>
-				<button class="btn-menu mb-2" data-type="3day">VÉ BA NGÀY</button>
+				<button class="btn-menu active mb-2" data-type="single" id="txt1">VÉ MỘT CHẶNG</button>
+				<button class="btn-menu mb-2" data-type="1day" id="txt2">VÉ MỘT NGÀY</button>
+				<button class="btn-menu mb-2" data-type="3day" id="txt3">VÉ BA NGÀY</button>
 			</div>
 
 			<div class="lang-switch">
@@ -132,7 +132,7 @@
 
         <div class="side-panel" style="color:black">
             <div class="info-box">
-                <p class="mb-1"><span id="lbl-ticket-type">Loại vé:</span> <strong id="val-ticket-type">Vé một chặng</strong></p>
+                <p class="mb-1"><span id="lbl-ticket-type">Loại vé:</span> <strong id="val-ticket-type"></strong></p>
                 <hr class="my-2">
                 <p class="mb-1 small"><span id="lbl-from">Từ:</span> <strong class="start">Bến Thành</strong></p>
                 <p class="mb-3 small"><span id="lbl-to">Đến:</span> <strong id="txtTo">---</strong></p>
@@ -161,7 +161,7 @@
     let currentLang = 'vn';
     let selectedDestId = null;
     let currentQty = 1;
-    let currentTicketType = 'single';
+    let currentTicketType = $(this).data('type');
 
     const stations = [
         { id: 2,  nameVN: "Nhà hát Thành Phố",       nameEN: "Opera House" },
@@ -174,7 +174,7 @@
         { id: 9,  nameVN: "Phước Long",         nameEN: "Phuoc Long" },
         { id: 10, nameVN: "Bình Thái",          nameEN: "Binh Thai" },
         { id: 11, nameVN: "Thủ Đức",            nameEN: "Thu Duc" },
-        { id: 12, nameVN: "Khu Công Nghệ cao",         nameEN: "High-Tech Park" },
+        { id: 12, nameVN: "Khu Công Nghệ Cao",         nameEN: "High-Tech Park" },
         { id: 13, nameVN: "Đại Học Quốc Gia",               nameEN: "National University" },
         { id: 14, nameVN: "Bến xe Suối Tiên",   nameEN: "Suoi Tien Terminal" }
     ];
@@ -216,6 +216,15 @@
     }
 
     function updateStaticText() {
+        let ticketName = "";
+        if (currentTicketType === '1day') {
+            ticketName = (currentLang === 'vn') ? 'VÉ MỘT NGÀY' : 'One Day Ticket';
+        } else if (currentTicketType === '3day') {
+            ticketName = (currentLang === 'vn') ? 'VÉ BA NGÀY' : 'Three Day Ticket';
+        } else {
+            ticketName = (currentLang === 'vn') ? 'VÉ MỘT CHẶNG' : 'Single Journey Ticket';
+        }
+        $('#val-ticket-type').text(ticketName);
         if (currentLang === 'en') {
             $('#lbl-title').text('SELECT DESTINATION');
             $('#lbl-start').text('Departure:');
@@ -223,7 +232,11 @@
             $('#btn-cancell').text('CANCEL');
             $('#menu-sjt').text('Single Journey Ticket')
             $('#lbl-ticket-type').text('Ticket Type:');
-            $('#val-ticket-type').text('Single Journey Ticket');
+            $('#txt1').text('Single Journey Ticket');
+            $('#txt2').text('One Day Journey Ticket');
+            $('#txt3').text('Three Day Journey Ticket');
+
+
             $('#lbl-from').text('From:');
             $('#lbl-to').text('To:');
             $('#lbl-quantity-display').text('Quantity:');
@@ -238,7 +251,11 @@
             $('#btn-next').text('TIẾP THEO');
             $('#btn-cancell').text('HỦY');
             $('#lbl-ticket-type').text('Loại vé:');
-            $('#val-ticket-type').text('Vé một chặng');
+            //$('#val-ticket-type').text('VÉ MỘT CHẶNG');
+            $('#txt1').text('VÉ MỘT CHẶNG');
+            $('#txt2').text('VÉ MỘT NGÀY');
+            $('#txt3').text('VÉ BA NGÀY');
+
             $('#lbl-from').text('Từ:');
             $('#lbl-to').text('Đến:');
             $('#lbl-quantity-display').text('Số lượng:');
@@ -248,31 +265,41 @@
             $('#menu-refund').html('TRẢ LẠI VÉ');
             $('.start').text('Bến Thành');
         }
+        if (selectedDestId) {
+            const s = stations.find(x => x.id === selectedDestId);
+            if (s) $('#txtTo').text(currentLang === 'vn' ? s.nameVN : s.nameEN);
+        }
     }
 
     $(document).ready(function () {
+        updateStaticText();
         renderStations();
 
         // Ticket type selection (single / 1day / 3day)
         // set data-type attributes on buttons and mark first as active
-        $('.btn-menu').each(function () {
-            const t = $(this).data('type');
-            if (!t) return;
-            if (t === 'single') $(this).addClass('active');
+        $(document).on('click', '.btn-menu[data-type]', function () {
+            $('.btn-menu[data-type]').removeClass('active');
+            $(this).addClass('active');
+
+            currentTicketType = $(this).data('type');
+            updateStaticText(); // Cập nhật tên hiển thị ngay lập tức
+
+            if (selectedDestId) fetchAndDisplayFare();
         });
 
         $(document).on('click', '.btn-menu[data-type]', function () {
             $('.btn-menu[data-type]').removeClass('active');
             $(this).addClass('active');
             currentTicketType = $(this).data('type');
-            // update label
+            let ticketName = "";
             if (currentTicketType === '1day') {
-                $('#val-ticket-type').text('Vé 1 ngày');
+                ticketName = (currentLang === 'vn') ? 'VÉ MỘT NGÀY' : 'One Day Journey Ticket';
             } else if (currentTicketType === '3day') {
-                $('#val-ticket-type').text('Vé 3 ngày');
+                ticketName = (currentLang === 'vn') ? 'VÉ BA NGÀY' : 'Three Day Journey Ticket';
             } else {
-                $('#val-ticket-type').text('Vé một chặng');
+                ticketName = (currentLang === 'vn') ? 'VÉ MỘT CHẶNG' : 'Single Journey Ticket';
             }
+            $('#val-ticket-type').text(ticketName);
             // optionally refresh fare display
             if (selectedDestId) fetchAndDisplayFare();
         });
@@ -282,12 +309,9 @@
             $('.btn-lang').removeClass('btn-light').addClass('btn-outline-light');
             $(this).addClass('btn-light').removeClass('btn-outline-light');
             currentLang = $(this).data('lang');
+
             renderStations();
             updateStaticText();
-            if (selectedDestId) {
-                const s = stations.find(x => x.id === selectedDestId);
-                if (s) $('#txtTo').text(currentLang === 'vn' ? s.nameVN : s.nameEN);
-            }
         });
 
         // Select destination station

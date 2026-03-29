@@ -16,22 +16,21 @@ namespace Ticket_Vendor_Machine.Controllers
             return View();
         }
 
-<<<<<<< HEAD
+
         // Thêm dấu ? sau int hoặc gán = 1 để tránh lỗi null
         [ValidateInput(false)]
-        public ActionResult Payment(string toStation, int? qty, string total, string lang = "vn")
-=======
-        public ActionResult Payment(string toStation, int qty, string total, string ticketType = "single", string lang = "vn")
->>>>>>> 2ccb2a03547abfc1f45442ebee9c7140c678f3f6
+        //public ActionResult Payment(string toStation, int? qty, string total, string lang = "vn")
+
+        public ActionResult Payment(string toStation, int? qty, string total, string ticketType = "single", string lang = "vn")
+
         {
             // Kiểm tra nếu qty bị null thì mặc định là 1
             ViewBag.ToStation = toStation ?? "---";
             ViewBag.Quantity = qty ?? 1;
             ViewBag.Total = total ?? "0 VNĐ";
-<<<<<<< HEAD
+
             ViewBag.Lang = lang;
-=======
-            ViewBag.Lang = lang; // Lưu ngôn ngữ vào ViewBag
+
             ViewBag.TicketType = ticketType ?? "single";
 
             // Friendly label
@@ -50,7 +49,6 @@ namespace Ticket_Vendor_Machine.Controllers
                     ViewBag.TicketTypeLabel = "Vé một chặng";
                     break;
             }
->>>>>>> 2ccb2a03547abfc1f45442ebee9c7140c678f3f6
 
             return View();
         }
@@ -66,7 +64,8 @@ namespace Ticket_Vendor_Machine.Controllers
             ReportParameter[] parameters = new ReportParameter[3];
 
             // 1. toStation gửi dạng Text (Nhà hát TP, Văn Thánh...)
-            parameters[0] = new ReportParameter("pToStation", toStation ?? "---");
+            string decodedToStation = HttpUtility.HtmlDecode(toStation ?? "---");
+            parameters[0] = new ReportParameter("pToStation", decodedToStation);
 
             // 2. pQty gửi dạng chuỗi số (RDLC sẽ tự ép về Integer như bạn đã chỉnh)
             // Dùng .ToString() để chuyển từ int sang string trước khi gửi
