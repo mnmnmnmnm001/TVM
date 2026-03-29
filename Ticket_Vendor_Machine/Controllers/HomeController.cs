@@ -16,15 +16,41 @@ namespace Ticket_Vendor_Machine.Controllers
             return View();
         }
 
+<<<<<<< HEAD
         // Thêm dấu ? sau int hoặc gán = 1 để tránh lỗi null
         [ValidateInput(false)]
         public ActionResult Payment(string toStation, int? qty, string total, string lang = "vn")
+=======
+        public ActionResult Payment(string toStation, int qty, string total, string ticketType = "single", string lang = "vn")
+>>>>>>> 2ccb2a03547abfc1f45442ebee9c7140c678f3f6
         {
             // Kiểm tra nếu qty bị null thì mặc định là 1
             ViewBag.ToStation = toStation ?? "---";
             ViewBag.Quantity = qty ?? 1;
             ViewBag.Total = total ?? "0 VNĐ";
+<<<<<<< HEAD
             ViewBag.Lang = lang;
+=======
+            ViewBag.Lang = lang; // Lưu ngôn ngữ vào ViewBag
+            ViewBag.TicketType = ticketType ?? "single";
+
+            // Friendly label
+            switch (ViewBag.TicketType as string)
+            {
+                case "1day":
+                    ViewBag.TicketTypeLabel = "Vé 1 ngày";
+                    // Valid for 24 hours from purchase
+                    ViewBag.ValidUntil = DateTime.Now.AddHours(24).ToString("g");
+                    break;
+                case "3day":
+                    ViewBag.TicketTypeLabel = "Vé 3 ngày";
+                    break;
+                case "single":
+                default:
+                    ViewBag.TicketTypeLabel = "Vé một chặng";
+                    break;
+            }
+>>>>>>> 2ccb2a03547abfc1f45442ebee9c7140c678f3f6
 
             return View();
         }
@@ -59,13 +85,20 @@ namespace Ticket_Vendor_Machine.Controllers
         private readonly FareCalculator _fareCalc = new FareCalculator();
 
         [HttpGet]
-        public JsonResult CalculateFare(int destinationId, int quantity = 1)
+        public JsonResult CalculateFare(int destinationId, int quantity = 1, string ticketType = "single")
         {
             if (quantity < 1) quantity = 1;
             if (quantity > 9) quantity = 9;
 
             decimal unitFare = _fareCalc.GetUnitFare(destinationId);
             decimal totalFare = _fareCalc.GetTotalFare(destinationId, quantity);
+
+            // If user selects 1-day ticket, use fixed daily price per passenger
+            if (!string.IsNullOrEmpty(ticketType) && ticketType == "1day")
+            {
+                unitFare = 30000m; // fixed price per passenger for 1-day ticket
+                totalFare = unitFare * quantity;
+            }
 
             return Json(new { unitFare, totalFare }, JsonRequestBehavior.AllowGet);
         }
