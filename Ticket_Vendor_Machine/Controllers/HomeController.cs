@@ -13,5 +13,10 @@ namespace Ticket_Vendor_Machine.Controllers
             return View();
         }
 
+        public ActionResult Payment()
+        {
+            return View();
+        }
+
     }
 }

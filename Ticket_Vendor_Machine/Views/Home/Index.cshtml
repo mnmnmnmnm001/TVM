@@ -245,6 +245,20 @@
                 $('#txtTotal').text("15.000 VNĐ");
             });
 
+            $('#btn-next').click(function () {
+                const toStation = $('#txtTo').text();
+                const qty = quantity;
+                const total = $('#txtTotal').text();
+
+                if (toStation === '---') {
+                    alert(currentLang === 'vn' ? "Vui lòng chọn ga đến!" : "Please select destination!");
+                    return;
+                }
+
+                // Chuyển hướng sang Action Payment trong HomeController kèm tham số
+                window.location.href = `/Home/Payment?toStation=${toStation}&qty=${qty}&total=${total}`;
+            });
+
             // Nút Hủy (Cancel Transaction)
             $('#btn-cancell').click(function () {
                 $('.btn-station').removeClass('selected-to');
