@@ -1,4 +1,4 @@
-﻿@{
+﻿﻿@{
     ViewBag.Title = "Metro Ticket Vending Machine";
 }
 
@@ -149,69 +149,49 @@
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <script>
-        let currentLang = 'vn';
+    let currentLang = 'vn';
+    let selectedDestId = null;
+    let currentQty = 1;
 
-        // Dữ liệu ga từ Database (StationID tương ứng với StationOrder)
-        const stations = [
-            { id: 2, nameVN: "Nhà hát TP", nameEN: "Opera House" },
-            { id: 3, nameVN: "Ba Son", nameEN: "Ba Son" },
-            { id: 4, nameVN: "Văn Thánh", nameEN: "Van Thanh Park" },
-            { id: 5, nameVN: "Tân Cảng", nameEN: "Tan Cang" },
-            { id: 6, nameVN: "Thảo Điền", nameEN: "Thao Dien" },
-            { id: 7, nameVN: "An Phú", nameEN: "An Phu" },
-            { id: 8, nameVN: "Rạch Chiếc", nameEN: "Rach Chiec" },
-            { id: 9, nameVN: "Phước Long", nameEN: "Phuoc Long" },
-            { id: 10, nameVN: "Bình Thái", nameEN: "Binh Thai" },
-            { id: 11, nameVN: "Thủ Đức", nameEN: "Thu Duc" },
-            { id: 12, nameVN: "Khu CN cao", nameEN: "High-Tech Park" },
-            { id: 13, nameVN: "ĐHQG", nameEN: "National University" },
-            { id: 14, nameVN: "Bến xe Suối Tiên", nameEN: "Suoi Tien Terminal" }
-        ];
+    const stations = [
+        { id: 2,  nameVN: "Nhà hát TP",       nameEN: "Opera House" },
+        { id: 3,  nameVN: "Ba Son",             nameEN: "Ba Son" },
+        { id: 4,  nameVN: "Văn Thánh",          nameEN: "Van Thanh Park" },
+        { id: 5,  nameVN: "Tân Cảng",           nameEN: "Tan Cang" },
+        { id: 6,  nameVN: "Thảo Điền",          nameEN: "Thao Dien" },
+        { id: 7,  nameVN: "An Phú",             nameEN: "An Phu" },
+        { id: 8,  nameVN: "Rạch Chiếc",         nameEN: "Rach Chiec" },
+        { id: 9,  nameVN: "Phước Long",         nameEN: "Phuoc Long" },
+        { id: 10, nameVN: "Bình Thái",          nameEN: "Binh Thai" },
+        { id: 11, nameVN: "Thủ Đức",            nameEN: "Thu Duc" },
+        { id: 12, nameVN: "Khu CN cao",         nameEN: "High-Tech Park" },
+        { id: 13, nameVN: "ĐHQG",               nameEN: "National University" },
+        { id: 14, nameVN: "Bến xe Suối Tiên",   nameEN: "Suoi Tien Terminal" }
+    ];
 
-        // Hàm vẽ danh sách ga
-        function renderStations() {
-            $('#stationList').empty();
-            stations.forEach(s => {
-                const name = (currentLang === 'vn') ? s.nameVN : s.nameEN;
-                $('#stationList').append(`
-                            <button class="btn-station" data-id="${s.id}" data-name="${name}">
-                                ${s.id}. ${name}
-                            </button>
-                        `);
-            });
-        }
+    function formatVND(amount) {
+        return amount.toLocaleString('vi-VN') + ' VNĐ';
+    }
 
-        // Hàm cập nhật ngôn ngữ cho các nhãn (Labels) dựa trên ID
-        function updateStaticText() {
-            if (currentLang === 'en') {
-                $('#lbl-title').text('SELECT DESTINATION');
-                $('#lbl-start').text('Departure:');
-                $('#btn-cancell').text('CANCEL');
-                $('#btn-next').text('NEXT');
-                $('#lbl-ticket-type').text('Ticket Type:');
-                $('#val-ticket-type').text('Single Journey Ticket');
-                $('#lbl-from').text('From:');
-                $('#lbl-to').text('To:');
-                $('#lbl-unit-price-label').text('Unit Price:');
-                $('#lbl-total-price-label').text('Total Fare:');
-                $('#menu-buy').html('BUY TICKET');
-                $('#menu-refund').html('REFUND');
-                $('.start').text('Ben Thanh');
-            } else {
-                $('#lbl-title').text('CHỌN GA ĐẾN');
-                $('#lbl-start').text('Ga khởi hành:');
-                $('#btn-cancell').text('HỦY');
-                $('#btn-next').text('TIẾP THEO');
-                $('#lbl-ticket-type').text('Loại vé:');
-                $('#val-ticket-type').text('Vé một chặng');
-                $('#lbl-from').text('Từ:');
-                $('#lbl-to').text('Đến:');
-                $('#lbl-unit-price-label').text('Đơn giá:');
-                $('#lbl-total-price-label').text('Tổng giá vé:');
-                $('#menu-buy').html('MUA VÉ');
-                $('#menu-refund').html('TRẢ LẠI VÉ');
+    function fetchAndDisplayFare() {
+        if (!selectedDestId) return;
+
+        $.ajax({
+            url: '@Url.Action("CalculateFare", "Home")',
+            type: 'GET',
+            data: { destinationId: selectedDestId, quantity: currentQty },
+            success: function (result) {
+                $('#txtUnitPrice').text(formatVND(result.unitFare));
+                $('#txtTotal').text(formatVND(result.totalFare));
+                $('#btn-next').prop('disabled', false);
+            },
+            error: function () {
+                $('#txtUnitPrice').text('Lỗi / Error');
+                $('#txtTotal').text('Lỗi / Error');
             }
+<<<<<<< HEAD
         }
 
         $(document).ready(function () {
@@ -267,7 +247,122 @@
                 $('#txtTotal').text('0 VNĐ');
                 console.log("Giao dịch đã hủy.");
             });
+=======
+>>>>>>> efd6190f0ee641a46691a5cfb300569475061c2a
         });
+    }
+
+    function renderStations() {
+        $('#stationList').empty();
+        stations.forEach(function (s) {
+            const name = (currentLang === 'vn') ? s.nameVN : s.nameEN;
+            const selected = (s.id === selectedDestId) ? 'selected-to' : '';
+            $('#stationList').append(
+                `<button class="btn-station ${selected}" data-id="${s.id}" data-name="${name}">
+                     ${s.id}. ${name}
+                 </button>`
+            );
+        });
+    }
+
+    function updateStaticText() {
+        if (currentLang === 'en') {
+            $('#lbl-title').text('SELECT DESTINATION');
+            $('#lbl-start').text('Departure:');
+            $('#btn-next').text('NEXT');
+            $('#btn-cancell').text('CANCEL');
+            $('#lbl-ticket-type').text('Ticket Type:');
+            $('#val-ticket-type').text('Single Journey Ticket');
+            $('#lbl-from').text('From:');
+            $('#lbl-to').text('To:');
+            $('#lbl-quantity-display').text('Quantity:');
+            $('#lbl-unit-price-label').text('Unit Price:');
+            $('#lbl-total-price-label').text('Total Fare:');
+            $('#menu-buy').html('BUY TICKET');
+            $('#menu-refund').html('REFUND');
+            $('.start').text('Ben Thanh');
+        } else {
+            $('#lbl-title').text('CHỌN GA ĐẾN');
+            $('#lbl-start').text('Ga khởi hành:');
+            $('#btn-next').text('TIẾP THEO');
+            $('#btn-cancell').text('HỦY');
+            $('#lbl-ticket-type').text('Loại vé:');
+            $('#val-ticket-type').text('Vé một chặng');
+            $('#lbl-from').text('Từ:');
+            $('#lbl-to').text('Đến:');
+            $('#lbl-quantity-display').text('Số lượng:');
+            $('#lbl-unit-price-label').text('Đơn giá:');
+            $('#lbl-total-price-label').text('Tổng giá vé:');
+            $('#menu-buy').html('MUA VÉ');
+            $('#menu-refund').html('TRẢ LẠI VÉ');
+            $('.start').text('Bến Thành');
+        }
+    }
+
+    $(document).ready(function () {
+        renderStations();
+
+        // Language switch
+        $('.btn-lang').click(function () {
+            $('.btn-lang').removeClass('btn-light').addClass('btn-outline-light');
+            $(this).addClass('btn-light').removeClass('btn-outline-light');
+            currentLang = $(this).data('lang');
+            renderStations();
+            updateStaticText();
+            if (selectedDestId) {
+                const s = stations.find(x => x.id === selectedDestId);
+                if (s) $('#txtTo').text(currentLang === 'vn' ? s.nameVN : s.nameEN);
+            }
+        });
+
+        // Select destination station
+        $(document).on('click', '.btn-station', function () {
+            selectedDestId = parseInt($(this).data('id'));
+            $('.btn-station').removeClass('selected-to');
+            $(this).addClass('selected-to');
+            $('#txtTo').text($(this).data('name'));
+            currentQty = 1;
+            $('#txtQty').text('1');
+            fetchAndDisplayFare();  // calls HomeController.CalculateFare/ HomeController uses ServiceFunction/CalculateFare.cs (class function)
+        });
+
+        // Quantity minus
+        $('#btn-minus').click(function () {
+            if (currentQty > 1) {
+                currentQty--;
+                $('#txtQty').text(currentQty);
+                fetchAndDisplayFare();
+            }
+        });
+
+        // Quantity plus (max 9) muon gioi han max bao nhieu thi chinh o day
+        $('#btn-plus').click(function () {
+            if (currentQty < 9) {
+                currentQty++;
+                $('#txtQty').text(currentQty);
+                fetchAndDisplayFare();
+            }
+        });
+
+        // Cancel
+        $('#btn-cancell').click(function () {
+            selectedDestId = null;
+            currentQty = 1;
+            $('#txtQty').text('1');
+            $('#txtTo').text('---');
+            $('#txtUnitPrice').text('0 VNĐ');
+            $('#txtTotal').text('0 VNĐ');
+            $('#btn-next').prop('disabled', true);
+            $('.btn-station').removeClass('selected-to');
+        });
+
+        // Next — hook up to your payment controller when ready
+        $('#btn-next').click(function () {
+            if (!selectedDestId) return;
+            // window.location.href = '/Payment/Index?destId=' + selectedDestId + '&qty=' + currentQty;
+            alert('destId=' + selectedDestId + ', qty=' + currentQty);
+        });
+    });
     </script>
 </body>
 </html>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using Ticket_Vendor_Machine.ServiceFunction;
 
 namespace Ticket_Vendor_Machine.Controllers
 {
@@ -13,9 +14,24 @@ namespace Ticket_Vendor_Machine.Controllers
             return View();
         }
 
+<<<<<<< HEAD
         public ActionResult Payment()
         {
             return View();
+=======
+        private readonly FareCalculator _fareCalc = new FareCalculator();
+
+        [HttpGet]
+        public JsonResult CalculateFare(int destinationId, int quantity = 1)
+        {
+            if (quantity < 1) quantity = 1;
+            if (quantity > 9) quantity = 9;
+
+            decimal unitFare = _fareCalc.GetUnitFare(destinationId);
+            decimal totalFare = _fareCalc.GetTotalFare(destinationId, quantity);
+
+            return Json(new { unitFare, totalFare }, JsonRequestBehavior.AllowGet);
+>>>>>>> efd6190f0ee641a46691a5cfb300569475061c2a
         }
 
     }
