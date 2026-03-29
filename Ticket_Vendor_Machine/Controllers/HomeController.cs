@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using Ticket_Vendor_Machine.ServiceFunction;
+using Microsoft.Reporting.WebForms;
 
 namespace Ticket_Vendor_Machine.Controllers
 {
@@ -14,15 +16,46 @@ namespace Ticket_Vendor_Machine.Controllers
             return View();
         }
 
-        public ActionResult Payment(string toStation, int qty, string total, string lang = "vn")
+        // Thêm dấu ? sau int hoặc gán = 1 để tránh lỗi null
+        [ValidateInput(false)]
+        public ActionResult Payment(string toStation, int? qty, string total, string lang = "vn")
         {
+            // Kiểm tra nếu qty bị null thì mặc định là 1
             ViewBag.ToStation = toStation ?? "---";
-            ViewBag.Quantity = qty;
+            ViewBag.Quantity = qty ?? 1;
             ViewBag.Total = total ?? "0 VNĐ";
-            ViewBag.Lang = lang; // Lưu ngôn ngữ vào ViewBag
+            ViewBag.Lang = lang;
 
             return View();
         }
+
+
+        [ValidateInput(false)]
+        public ActionResult Generate(string toStation, int? qty, string total)
+        {
+            var reportPath = Path.Combine(Server.MapPath("~/Reports/Ticket.rdlc"));
+            LocalReport localReport = new LocalReport { ReportPath = reportPath };
+
+            // Khởi tạo tham số
+            ReportParameter[] parameters = new ReportParameter[3];
+
+            // 1. toStation gửi dạng Text (Nhà hát TP, Văn Thánh...)
+            parameters[0] = new ReportParameter("pToStation", toStation ?? "---");
+
+            // 2. pQty gửi dạng chuỗi số (RDLC sẽ tự ép về Integer như bạn đã chỉnh)
+            // Dùng .ToString() để chuyển từ int sang string trước khi gửi
+            parameters[1] = new ReportParameter("pQty", (qty ?? 1).ToString());
+
+            // 3. pTotal gửi dạng Text (Bao gồm cả chữ VNĐ)
+            parameters[2] = new ReportParameter("pTotal", total ?? "0 VNĐ");
+
+            localReport.SetParameters(parameters);
+
+            // ... phần xuất PDF giữ nguyên ...
+            byte[] renderedBytes = localReport.Render("PDF");
+            return File(renderedBytes, "application/pdf", "MetroTicket.pdf");
+        }
+
         private readonly FareCalculator _fareCalc = new FareCalculator();
 
         [HttpGet]

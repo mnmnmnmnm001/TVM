@@ -144,7 +144,7 @@
                 </p>
 
                 <div class="mt-4 d-grid gap-2">
-                    <button class="btn btn-warning py-3 fw-bold">XÁC NHẬN THANH TOÁN</button>
+                    <button class="btn btn-warning py-3 fw-bold" id="btn-confirm">XÁC NHẬN THANH TOÁN</button>
 
                     <button class="btn btn-danger py-2" onclick="location.href='/Home/Index'">
                         HỦY GIAO DỊCH
@@ -186,10 +186,18 @@
             $('#btn-confirm').removeAttr('disabled').removeClass('btn-warning').addClass('btn-success');
         }
 
-        $('#btn-confirm').click(function () {
-            alert("Đang xử lý giao dịch... Vui lòng nhận vé tại khe!");
+        document.getElementById('btn-confirm').onclick = function () {
+            // Lấy dữ liệu từ ViewBag được truyền từ Controller sang
+            const toStation = '@ViewBag.ToStation';
+            const qty = '@ViewBag.Quantity';
+            const total = '@ViewBag.Total';
+
+            const generateUrl = `/Home/Generate?toStation=${encodeURIComponent(toStation)}&qty=${qty}&total=${encodeURIComponent(total)}`;
+
+            window.open(generateUrl, '_blank');
+
             window.location.href = '/Home/Index';
-        });
+        };
     </script>
 
 </body>
