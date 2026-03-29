@@ -14,11 +14,10 @@ namespace Ticket_Vendor_Machine.Controllers
             return View();
         }
 
-<<<<<<< HEAD
         public ActionResult Payment()
         {
             return View();
-=======
+        }
         private readonly FareCalculator _fareCalc = new FareCalculator();
 
         [HttpGet]
@@ -31,7 +30,6 @@ namespace Ticket_Vendor_Machine.Controllers
             decimal totalFare = _fareCalc.GetTotalFare(destinationId, quantity);
 
             return Json(new { unitFare, totalFare }, JsonRequestBehavior.AllowGet);
->>>>>>> efd6190f0ee641a46691a5cfb300569475061c2a
         }
 
     }
