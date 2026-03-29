@@ -17,10 +17,15 @@ namespace Ticket_Vendor_Machine.Controllers
         private readonly FareCalculator _fareCalc = new FareCalculator();
 
         [HttpGet]
-        public JsonResult CalculateFare(int destinationId)
+        public JsonResult CalculateFare(int destinationId, int quantity = 1)
         {
-            decimal fare = _fareCalc.Calculate(destinationId);
-            return Json(new { fare = fare }, JsonRequestBehavior.AllowGet);
+            if (quantity < 1) quantity = 1;
+            if (quantity > 9) quantity = 9;
+
+            decimal unitFare = _fareCalc.GetUnitFare(destinationId);
+            decimal totalFare = _fareCalc.GetTotalFare(destinationId, quantity);
+
+            return Json(new { unitFare, totalFare }, JsonRequestBehavior.AllowGet);
         }
 
     }
