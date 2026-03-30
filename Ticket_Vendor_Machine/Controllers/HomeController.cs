@@ -19,37 +19,32 @@ namespace Ticket_Vendor_Machine.Controllers
 
         // Thêm dấu ? sau int hoặc gán = 1 để tránh lỗi null
         [ValidateInput(false)]
-        //public ActionResult Payment(string toStation, int? qty, string total, string lang = "vn")
-
         public ActionResult Payment(string toStation, int? qty, string total, string ticketType = "single", string lang = "vn")
-
         {
-            // Kiểm tra nếu qty bị null thì mặc định là 1
+
             ViewBag.ToStation = toStation ?? "---";
+
             ViewBag.Quantity = qty ?? 1;
+
             ViewBag.Total = total ?? "0 VNĐ";
 
             ViewBag.Lang = lang;
 
             ViewBag.TicketType = ticketType ?? "single";
 
-            // Friendly label
             switch (ViewBag.TicketType as string)
             {
                 case "1day":
                     ViewBag.TicketTypeLabel = "Vé 1 ngày";
-                    // Valid for 24 hours from purchase
-                    ViewBag.ValidUntil = DateTime.Now.AddHours(24).ToString("g");
-                    break;
-                case "3day":
-                    ViewBag.TicketTypeLabel = "Vé 3 ngày";
+
+                    ViewBag.ValidUntil = DateTime.Now.ToString("dd/MM/yy");
                     break;
                 case "single":
                 default:
                     ViewBag.TicketTypeLabel = "Vé một chặng";
+                    ViewBag.ValidUntil = DateTime.Now.ToString("dd/MM/yy");
                     break;
             }
-
             return View();
         }
 

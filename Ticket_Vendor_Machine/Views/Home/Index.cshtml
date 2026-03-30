@@ -108,7 +108,6 @@
 			<div>
 				<button class="btn-menu active mb-2" data-type="single" id="txt1">VÉ MỘT CHẶNG</button>
 				<button class="btn-menu mb-2" data-type="1day" id="txt2">VÉ MỘT NGÀY</button>
-				<button class="btn-menu mb-2" data-type="3day" id="txt3">VÉ BA NGÀY</button>
 			</div>
 
 			<div class="lang-switch">
@@ -219,8 +218,6 @@
         let ticketName = "";
         if (currentTicketType === '1day') {
             ticketName = (currentLang === 'vn') ? 'VÉ MỘT NGÀY' : 'One Day Ticket';
-        } else if (currentTicketType === '3day') {
-            ticketName = (currentLang === 'vn') ? 'VÉ BA NGÀY' : 'Three Day Ticket';
         } else {
             ticketName = (currentLang === 'vn') ? 'VÉ MỘT CHẶNG' : 'Single Journey Ticket';
         }
@@ -234,7 +231,6 @@
             $('#lbl-ticket-type').text('Ticket Type:');
             $('#txt1').text('Single Journey Ticket');
             $('#txt2').text('One Day Journey Ticket');
-            $('#txt3').text('Three Day Journey Ticket');
 
 
             $('#lbl-from').text('From:');
@@ -254,7 +250,6 @@
             //$('#val-ticket-type').text('VÉ MỘT CHẶNG');
             $('#txt1').text('VÉ MỘT CHẶNG');
             $('#txt2').text('VÉ MỘT NGÀY');
-            $('#txt3').text('VÉ BA NGÀY');
 
             $('#lbl-from').text('Từ:');
             $('#lbl-to').text('Đến:');
@@ -294,8 +289,6 @@
             let ticketName = "";
             if (currentTicketType === '1day') {
                 ticketName = (currentLang === 'vn') ? 'VÉ MỘT NGÀY' : 'One Day Journey Ticket';
-            } else if (currentTicketType === '3day') {
-                ticketName = (currentLang === 'vn') ? 'VÉ BA NGÀY' : 'Three Day Journey Ticket';
             } else {
                 ticketName = (currentLang === 'vn') ? 'VÉ MỘT CHẶNG' : 'Single Journey Ticket';
             }
@@ -356,23 +349,28 @@
         });
 
         $('#btn-next').click(function () {
-            // 1. Kiểm tra nếu người dùng chưa chọn ga
-            if (!selectedDestId || $('#txtTo').text() === '---') {
-                const msg = (currentLang === 'vn') ? "Vui lòng chọn ga đến!" : "Please select destination!";
-                alert(msg);
-                return;
-            }
 
-            // 2. Lấy dữ liệu hiện tại từ giao diện
+            // 1. Kiểm tra nếu người dùng chưa chọn ga
+
+            if (!selectedDestId || $('#txtTo').text() === '---') {
+
+                const msg = (currentLang === 'vn') ? "Vui lòng chọn ga đến!" : "Please select destination!";
+
+                alert(msg);
+
+                return;
+
+            }
             const toStation = $('#txtTo').text();
+
             const qty = currentQty;
+
             const total = $('#txtTotal').text();
 
-            // 3. Chuyển hướng sang Action Payment trong HomeController
-            // Dữ liệu sẽ được truyền qua Query String (?key=value)
             window.location.href = `/Home/Payment?toStation=${encodeURIComponent(toStation)}&qty=${qty}&total=${encodeURIComponent(total)}&ticketType=${encodeURIComponent(currentTicketType)}`;
         });
     });
+
     </script>
 </body>
 </html>

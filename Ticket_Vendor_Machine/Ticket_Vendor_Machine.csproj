@@ -197,6 +197,7 @@
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
+    <Content Include="images\qr.png" />
     <Content Include="Models\MetroSystem.Context.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <DependentUpon>MetroSystem.edmx</DependentUpon>
