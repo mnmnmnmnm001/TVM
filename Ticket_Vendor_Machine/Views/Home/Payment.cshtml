@@ -145,7 +145,10 @@
                 <h5 class="fw-bold text-center">TÓM TẮT VÉ</h5>
                 <hr>
                 <p class="mb-1">Từ: <strong>Bến Thành</strong></p>
-                <p class="mb-1">Đến: <strong>@ViewBag.ToStation</strong></p>
+                @if((string)ViewBag.TicketType != "1day")
+                {
+                    <p class="mb-1">Đến: <strong>@ViewBag.ToStation</strong></p>
+                }
                 <p class="mb-3">Số lượng: <strong>@ViewBag.Quantity</strong></p>
 
                 <p class="mb-2">Loại vé: <strong>@(ViewBag.TicketTypeLabel ?? "Vé một chặng")</strong></p>
