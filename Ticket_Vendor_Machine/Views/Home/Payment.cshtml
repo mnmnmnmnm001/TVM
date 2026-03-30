@@ -262,7 +262,9 @@
             const qty = '@ViewBag.Quantity';
             const total = '@ViewBag.Total';
 
-            const generateUrl = `/Home/Generate?toStation=${encodeURIComponent(toStation)}&qty=${qty}&total=${encodeURIComponent(total)}`;
+            // Include ticket type when generating report so controller can pick correct RDLC
+            const ticketType = '@ViewBag.TicketType';
+            const generateUrl = `/Home/Generate?toStation=${encodeURIComponent(toStation)}&qty=${qty}&total=${encodeURIComponent(total)}&ticketType=${encodeURIComponent(ticketType)}`;
 
             window.open(generateUrl, '_blank');
 

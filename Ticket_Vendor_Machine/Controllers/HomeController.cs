@@ -50,9 +50,11 @@ namespace Ticket_Vendor_Machine.Controllers
 
 
         [ValidateInput(false)]
-        public ActionResult Generate(string toStation, int? qty, string total)
+        public ActionResult Generate(string toStation, int? qty, string total, string ticketType = "single")
         {
-            var reportPath = Path.Combine(Server.MapPath("~/Reports/Ticket.rdlc"));
+            // Choose report template based on ticket type (1-day uses a separate RDLC)
+            var reportFile = (!string.IsNullOrEmpty(ticketType) && ticketType == "1day") ? "TicketOneDay.rdlc" : "Ticket.rdlc";
+            var reportPath = Path.Combine(Server.MapPath($"~/Reports/{reportFile}"));
             LocalReport localReport = new LocalReport { ReportPath = reportPath };
 
             // Khởi tạo tham số
@@ -73,7 +75,8 @@ namespace Ticket_Vendor_Machine.Controllers
 
             // ... phần xuất PDF giữ nguyên ...
             byte[] renderedBytes = localReport.Render("PDF");
-            return File(renderedBytes, "application/pdf", "MetroTicket.pdf");
+            var downloadName = (ticketType == "1day") ? "MetroTicketOneDay.pdf" : "MetroTicket.pdf";
+            return File(renderedBytes, "application/pdf", downloadName);
         }
 
         private readonly FareCalculator _fareCalc = new FareCalculator();

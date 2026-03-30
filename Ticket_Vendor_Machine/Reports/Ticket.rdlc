@@ -379,7 +379,7 @@
               <Paragraph>
                 <TextRuns>
                   <TextRun>
-                    <Value>="Hiệu lực đến: 22:00:00" &amp; Format(Globals!ExecutionTime, "dd/MM/yyyy")</Value>
+                    <Value>="Hiệu lực đến: " &amp; Format(Globals!ExecutionTime, "dd/MM/yyyy") &amp; " 22:00:00 "</Value>
                     <Style>
                       <FontSize>12pt</FontSize>
                     </Style>

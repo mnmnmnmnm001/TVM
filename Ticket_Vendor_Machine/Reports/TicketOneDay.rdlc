@@ -5,41 +5,6 @@
     <ReportSection>
       <Body>
         <ReportItems>
-          <Textbox Name="pToStation">
-            <CanGrow>true</CanGrow>
-            <KeepTogether>true</KeepTogether>
-            <Paragraphs>
-              <Paragraph>
-                <TextRuns>
-                  <TextRun>
-                    <Value>=Parameters!pToStation.Value</Value>
-                    <Style>
-                      <FontSize>14pt</FontSize>
-                      <FontWeight>Bold</FontWeight>
-                    </Style>
-                  </TextRun>
-                </TextRuns>
-                <Style>
-                  <TextAlign>Center</TextAlign>
-                </Style>
-              </Paragraph>
-            </Paragraphs>
-            <rd:DefaultName>pToStation</rd:DefaultName>
-            <Top>0.58333in</Top>
-            <Left>4.04042in</Left>
-            <Height>0.36458in</Height>
-            <Width>1.86458in</Width>
-            <Style>
-              <Border>
-                <Style>None</Style>
-              </Border>
-              <VerticalAlign>Middle</VerticalAlign>
-              <PaddingLeft>2pt</PaddingLeft>
-              <PaddingRight>2pt</PaddingRight>
-              <PaddingTop>2pt</PaddingTop>
-              <PaddingBottom>2pt</PaddingBottom>
-            </Style>
-          </Textbox>
           <Textbox Name="Textbox4">
             <CanGrow>true</CanGrow>
             <KeepTogether>true</KeepTogether>
@@ -63,7 +28,6 @@
             <Left>2.39458in</Left>
             <Height>0.25in</Height>
             <Width>1.9375in</Width>
-            <ZIndex>1</ZIndex>
             <Style>
               <Border>
                 <Style>None</Style>
@@ -98,7 +62,7 @@
             <Left>1.79042in</Left>
             <Height>0.30556in</Height>
             <Width>2.85417in</Width>
-            <ZIndex>2</ZIndex>
+            <ZIndex>1</ZIndex>
             <Style>
               <Border>
                 <Style>None</Style>
@@ -134,7 +98,7 @@
             <Left>3.01958in</Left>
             <Height>0.54167in</Height>
             <Width>1in</Width>
-            <ZIndex>3</ZIndex>
+            <ZIndex>2</ZIndex>
             <Style>
               <Border>
                 <Style>None</Style>
@@ -170,7 +134,7 @@
             <Left>3.01958in</Left>
             <Height>0.54167in</Height>
             <Width>1in</Width>
-            <ZIndex>4</ZIndex>
+            <ZIndex>3</ZIndex>
             <Style>
               <Border>
                 <Style>None</Style>
@@ -206,7 +170,7 @@
             <Left>1.0925in</Left>
             <Height>0.54167in</Height>
             <Width>1.69792in</Width>
-            <ZIndex>5</ZIndex>
+            <ZIndex>4</ZIndex>
             <Style>
               <Border>
                 <Style>None</Style>
@@ -242,7 +206,7 @@
             <Left>1.0925in</Left>
             <Height>0.54167in</Height>
             <Width>1.69792in</Width>
-            <ZIndex>6</ZIndex>
+            <ZIndex>5</ZIndex>
             <Style>
               <Border>
                 <Style>None</Style>
@@ -278,7 +242,7 @@
             <Left>1.0925in</Left>
             <Height>0.25in</Height>
             <Width>1.17708in</Width>
-            <ZIndex>7</ZIndex>
+            <ZIndex>6</ZIndex>
             <Style>
               <Border>
                 <Style>None</Style>
@@ -290,45 +254,6 @@
               <PaddingBottom>2pt</PaddingBottom>
             </Style>
           </Textbox>
-          <Line Name="Line2">
-            <Top>0.78125in</Top>
-            <Left>3.155in</Left>
-            <Height>0in</Height>
-            <Width>0.63889in</Width>
-            <ZIndex>8</ZIndex>
-            <Style>
-              <Border>
-                <Style>Solid</Style>
-                <Width>3pt</Width>
-              </Border>
-            </Style>
-          </Line>
-          <Line Name="Line3">
-            <Top>0.78125in</Top>
-            <Left>3.80778in</Left>
-            <Height>0.16667in</Height>
-            <Width>-0.24307in</Width>
-            <ZIndex>9</ZIndex>
-            <Style>
-              <Border>
-                <Style>Solid</Style>
-                <Width>3pt</Width>
-              </Border>
-            </Style>
-          </Line>
-          <Line Name="Line4">
-            <Top>0.58333in</Top>
-            <Left>3.5925in</Left>
-            <Height>0.19792in</Height>
-            <Width>0.20139in</Width>
-            <ZIndex>10</ZIndex>
-            <Style>
-              <Border>
-                <Style>Solid</Style>
-                <Width>3pt</Width>
-              </Border>
-            </Style>
-          </Line>
           <Textbox Name="Textbox12">
             <CanGrow>true</CanGrow>
             <KeepTogether>true</KeepTogether>
@@ -349,11 +274,46 @@
               </Paragraph>
             </Paragraphs>
             <rd:DefaultName>Textbox12</rd:DefaultName>
-            <Top>0.58333in</Top>
-            <Left>1.0925in</Left>
+            <Top>0.4375in</Top>
+            <Left>2.50917in</Left>
             <Height>0.375in</Height>
             <Width>1.69792in</Width>
-            <ZIndex>11</ZIndex>
+            <ZIndex>7</ZIndex>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+              <VerticalAlign>Middle</VerticalAlign>
+              <PaddingLeft>2pt</PaddingLeft>
+              <PaddingRight>2pt</PaddingRight>
+              <PaddingTop>2pt</PaddingTop>
+              <PaddingBottom>2pt</PaddingBottom>
+            </Style>
+          </Textbox>
+          <Textbox Name="Textbox3">
+            <CanGrow>true</CanGrow>
+            <KeepTogether>true</KeepTogether>
+            <Paragraphs>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>="Hiệu lực đến: " &amp; Format(Globals!ExecutionTime, "dd/MM/yyyy") &amp; " 22:00:00 "</Value>
+                    <Style>
+                      <FontSize>12pt</FontSize>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style>
+                  <TextAlign>Center</TextAlign>
+                </Style>
+              </Paragraph>
+            </Paragraphs>
+            <rd:DefaultName>Textbox3</rd:DefaultName>
+            <Top>2.65152in</Top>
+            <Left>1.79042in</Left>
+            <Height>0.30556in</Height>
+            <Width>2.85417in</Width>
+            <ZIndex>8</ZIndex>
             <Style>
               <Border>
                 <Style>None</Style>
@@ -366,7 +326,7 @@
             </Style>
           </Textbox>
         </ReportItems>
-        <Height>2.58334in</Height>
+        <Height>2.99875in</Height>
         <Style>
           <Border>
             <Style>None</Style>
