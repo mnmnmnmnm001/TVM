@@ -194,8 +194,8 @@
         let stEN = '@ViewBag.StEN';
 
         let myBank = {
-            BANK_ID: "TPB",
-            ACCOUNT_NO: "00001756255",
+            BANK_ID: "MB",
+            ACCOUNT_NO: "76612887799",
         }
 
         function selectPayment(method) {
@@ -209,6 +209,7 @@
             let info = encodeURIComponent(`${ticketId}_${ticketQty}_${stEN}`);
 
             let qrUrl = `https://img.vietqr.io/image/${myBank.BANK_ID}-${myBank.ACCOUNT_NO}-compact2.png?amount=${rawAmount}&addInfo=${info}`;
+            
             const qrImg = $('#qr-code');
             const qrText = $('#qr-text');
             const instructionBox = $('#payment-instruction');
