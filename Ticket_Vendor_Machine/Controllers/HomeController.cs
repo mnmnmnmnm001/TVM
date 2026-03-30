@@ -19,7 +19,7 @@ namespace Ticket_Vendor_Machine.Controllers
 
         // Thêm dấu ? sau int hoặc gán = 1 để tránh lỗi null
         [ValidateInput(false)]
-        public ActionResult Payment(string toStation, int? qty, string total, string ticketType = "single", string lang = "vn")
+        public ActionResult Payment(string toStation, int? qty, string total, string ticketType, string lang = "vn", string stEN = "")
         {
 
             ViewBag.ToStation = toStation ?? "---";
@@ -30,8 +30,8 @@ namespace Ticket_Vendor_Machine.Controllers
 
             ViewBag.Lang = lang;
 
-            ViewBag.TicketType = ticketType ?? "single";
-
+            ViewBag.TicketType = string.IsNullOrEmpty(ticketType) ? "single" : ticketType;
+            ViewBag.StEN = string.IsNullOrEmpty(stEN) ? "---" : stEN;
             switch (ViewBag.TicketType as string)
             {
                 case "1day":

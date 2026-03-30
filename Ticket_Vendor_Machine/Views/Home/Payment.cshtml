@@ -191,6 +191,7 @@
         let ticketQty = '@ViewBag.Quantity';
         let ticketTotal = '@ViewBag.Total';
         let ticketStation = '@ViewBag.ToStation';
+        let stEN = '@ViewBag.StEN';
 
         let myBank = {
             BANK_ID: "TPB",
@@ -205,7 +206,8 @@
             }
             let rawAmount = ticketTotal.replace(/\D/g, '');
 
-            let info = encodeURIComponent(`${ticketId}_${ticketQty}_${ticketStation}`);
+            let info = encodeURIComponent(`${ticketId}_${ticketQty}_${stEN}`);
+
             let qrUrl = `https://img.vietqr.io/image/${myBank.BANK_ID}-${myBank.ACCOUNT_NO}-compact2.png?amount=${rawAmount}&addInfo=${info}`;
             const qrImg = $('#qr-code');
             const qrText = $('#qr-text');
@@ -230,6 +232,7 @@
                 instructionBox.hide();
 
                 qrTimeout = setTimeout(() => {
+                    console.log(ticketId);
                     qrImg.css('display', 'block').hide().stop(true, true).fadeIn();
                     qrText.stop(true, true).fadeIn();
                     $('#instruction-text').hide();

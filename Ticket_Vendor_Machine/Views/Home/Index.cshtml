@@ -160,8 +160,7 @@
     let currentLang = 'vn';
     let selectedDestId = null;
     let currentQty = 1;
-    let currentTicketType = $(this).data('type');
-
+    let currentTicketType = 'single';
     const stations = [
         { id: 2,  nameVN: "Nhà hát Thành Phố",       nameEN: "Opera House" },
         { id: 3,  nameVN: "Ba Son",             nameEN: "Ba Son" },
@@ -270,7 +269,7 @@
         updateStaticText();
         renderStations();
 
-        // Ticket type selection (single / 1day / 3day)
+        // Ticket type selection (single / 1day )
         // set data-type attributes on buttons and mark first as active
         $(document).on('click', '.btn-menu[data-type]', function () {
             $('.btn-menu[data-type]').removeClass('active');
@@ -367,7 +366,10 @@
 
             const total = $('#txtTotal').text();
 
-            window.location.href = `/Home/Payment?toStation=${encodeURIComponent(toStation)}&qty=${qty}&total=${encodeURIComponent(total)}&ticketType=${encodeURIComponent(currentTicketType)}`;
+            const selectedStation = stations.find(s => s.id === selectedDestId);
+            const stEN = selectedStation ? selectedStation.nameEN.replace(/\s+/g, '_') : "Unknown";
+
+            window.location.href = `/Home/Payment?toStation=${encodeURIComponent(toStation)}&qty=${qty}&total=${encodeURIComponent(total)}&ticketType=${encodeURIComponent(currentTicketType)}&stEN=${stEN}`;
         });
     });
 
