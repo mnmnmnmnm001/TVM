@@ -165,7 +165,7 @@
                 <div class="mt-4 d-grid gap-2">
                     <button class="btn btn-warning py-3 fw-bold" id="btn-confirm" disabled>XÁC NHẬN THANH TOÁN</button>
 
-                    <button class="btn btn-danger py-2" onclick="location.href='/Home/Index'">
+                    <button class="btn btn-danger py-2" onclick="location.href='/Home/Index'" id="btn-cancell">
                         HỦY GIAO DỊCH
                     </button>
                 </div>
@@ -211,12 +211,13 @@
 
             let info = encodeURIComponent(`${ticketId}_${ticketQty}_${stEN}`);
 
-            let qrUrl = `https://img.vietqr.io/image/${myBank.BANK_ID}-${myBank.ACCOUNT_NO}-compact2.png?amount=${rawAmount}&addInfo=${info}`;
-            
+            let qrUrl = `https://img.vietqr.io/image/${myBank.BANK_ID}-${myBank.ACCOUNT_NO}-compact2.png?amount=${rawAmount}&addInfo=${info}123`;
+
             const qrImg = $('#qr-code');
             const qrText = $('#qr-text');
             const instructionBox = $('#payment-instruction');
             const btnConfirm = $('#btn-confirm');
+            const btnCancell = $('#btn-cancell');
 
             if (method === 'Cash') {
                 $('#instruction-text').fadeIn();
@@ -240,7 +241,7 @@
                     qrImg.css('display', 'block').hide().stop(true, true).fadeIn();
                     qrText.stop(true, true).fadeIn();
                     $('#instruction-text').hide();
-                }, 2000);
+                }, 5000);
 
 
                 btnConfirm
@@ -250,10 +251,11 @@
 
 
 
-                //setTimeout(() => {
-                //    alert("Thanh toán thành công qua QR!");
-                //    btnConfirm.prop('disabled', false).addClass('btn-success');
-                //}, 10000);
+                setTimeout(() => {
+                    alert("Thanh toán thành công qua QR!");
+                    btnConfirm.prop('disabled', false).addClass('btn-success');
+                    btnCancell.prop('disabled', true).removeClass('btn-danger').addClass('btn-secondary');
+                }, 40000);
             }
         }
 
