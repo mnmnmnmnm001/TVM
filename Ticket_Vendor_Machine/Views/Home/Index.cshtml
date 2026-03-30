@@ -58,6 +58,18 @@
             position: relative;
         }
 
+        /* Make action buttons equal size */
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .action-buttons .btn {
+            min-width: 220px;
+            width: 220px;
+        }
+
         .station-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -123,9 +135,9 @@
             <div class="station-grid" id="stationList">
             </div>
 
-            <div class="mt-5 text-center">
-                <button class="btn btn-primary btn-lg px-5" id="btn-next">TIẾP THEO</button>
-                <button class="btn btn-danger btn-lg px-5" id="btn-cancell">HỦY</button>
+            <div class="mt-5 text-center action-buttons">
+                <button class="btn btn-primary btn-lg" id="btn-next">TIẾP THEO</button>
+                <button class="btn btn-danger btn-lg" id="btn-cancell">HỦY</button>
             </div>
         </div>
 
@@ -134,7 +146,7 @@
                 <p class="mb-1"><span id="lbl-ticket-type">Loại vé:</span> <strong id="val-ticket-type"></strong></p>
                 <hr class="my-2">
                 <p class="mb-1 small"><span id="lbl-from">Từ:</span> <strong class="start">Bến Thành</strong></p>
-                <p class="mb-3 small"><span id="lbl-to">Đến:</span> <strong id="txtTo">---</strong></p>
+                <p id="pTo" class="mb-3 small"><span id="lbl-to">Đến:</span> <strong id="txtTo">---</strong></p>
 
                 <p class="mb-1 small">
                     <span id="lbl-quantity-display">Số lượng:</span>
@@ -182,12 +194,17 @@
     }
 
     function fetchAndDisplayFare() {
-        if (!selectedDestId) return;
+        // For 1-day ticket we don't need a destination; use destinationId=0 so server returns fixed daily price
+        var destId = selectedDestId;
+        if (currentTicketType === '1day') destId = 0;
+
+        // If still no destination and not a 1-day ticket, skip
+        if (!destId && currentTicketType !== '1day') return;
 
         $.ajax({
             url: '@Url.Action("CalculateFare", "Home")',
             type: 'GET',
-            data: { destinationId: selectedDestId, quantity: currentQty, ticketType: currentTicketType },
+            data: { destinationId: destId, quantity: currentQty, ticketType: currentTicketType },
             success: function (result) {
                 $('#txtUnitPrice').text(formatVND(result.unitFare));
                 $('#txtTotal').text(formatVND(result.totalFare));
@@ -269,31 +286,49 @@
         updateStaticText();
         renderStations();
 
-        // Ticket type selection (single / 1day )
-        // set data-type attributes on buttons and mark first as active
+        // start with next disabled until selection
+        $('#btn-next').prop('disabled', true);
+
+        // Ticket type selection (single / 1day / 3day)
         $(document).on('click', '.btn-menu[data-type]', function () {
             $('.btn-menu[data-type]').removeClass('active');
             $(this).addClass('active');
 
             currentTicketType = $(this).data('type');
-            updateStaticText(); // Cập nhật tên hiển thị ngay lập tức
+            updateStaticText(); // cập nhật nhãn và ngôn ngữ
 
-            if (selectedDestId) fetchAndDisplayFare();
-        });
-
-        $(document).on('click', '.btn-menu[data-type]', function () {
-            $('.btn-menu[data-type]').removeClass('active');
-            $(this).addClass('active');
-            currentTicketType = $(this).data('type');
-            let ticketName = "";
             if (currentTicketType === '1day') {
-                ticketName = (currentLang === 'vn') ? 'VÉ MỘT NGÀY' : 'One Day Journey Ticket';
+                // hide station selection and set summary to 1-day
+                $('#stationList').hide();
+                // hide 'To' row in summary
+				$('#pTo').hide();
+                $('#txtTo').text((currentLang === 'vn') ? 'Vé 1 ngày' : 'One Day Ticket');
+                currentQty = 1;
+                $('#txtQty').text('1');
+                // enable quantity controls for 1-day (allow buying multiple 1-day tickets up to 9)
+                $('#btn-plus, #btn-minus').prop('disabled', false);
+                // change button labels for buy flow
+                $('#btn-next').text((currentLang === 'vn') ? 'MUA VÉ' : 'BUY TICKET');
+                $('#btn-cancell').text((currentLang === 'vn') ? 'KHÔNG MUA' : 'CANCEL');
+                // fetch fixed price for 1-day
+                fetchAndDisplayFare();
             } else {
-                ticketName = (currentLang === 'vn') ? 'VÉ MỘT CHẶNG' : 'Single Journey Ticket';
+                // show stations for journey-based tickets
+                $('#stationList').show();
+                $('#txtTo').text('---');
+				// show 'To' row in summary
+				$('#pTo').show();
+                // enable quantity controls
+                $('#btn-plus, #btn-minus').prop('disabled', false);
+                $('#btn-next').text((currentLang === 'vn') ? 'TIẾP THEO' : 'NEXT');
+                $('#btn-cancell').text((currentLang === 'vn') ? 'HỦY' : 'CANCEL');
+                if (selectedDestId) fetchAndDisplayFare();
+                else {
+                    $('#txtUnitPrice').text('0 VNĐ');
+                    $('#txtTotal').text('0 VNĐ');
+                    $('#btn-next').prop('disabled', true);
+                }
             }
-            $('#val-ticket-type').text(ticketName);
-            // optionally refresh fare display
-            if (selectedDestId) fetchAndDisplayFare();
         });
 
         // Language switch
@@ -335,37 +370,59 @@
             }
         });
 
-        // Cancel
+        // Cancel / Không mua
         $('#btn-cancell').click(function () {
-            selectedDestId = null;
-            currentQty = 1;
-            $('#txtQty').text('1');
-            $('#txtTo').text('---');
-            $('#txtUnitPrice').text('0 VNĐ');
-            $('#txtTotal').text('0 VNĐ');
-            $('#btn-next').prop('disabled', true);
-            $('.btn-station').removeClass('selected-to');
+            if (currentTicketType === '1day') {
+                // User chose not to buy 1-day ticket -> switch back to single journey mode
+                currentTicketType = 'single';
+                $('.btn-menu[data-type]').removeClass('active');
+                $('.btn-menu[data-type="single"]').addClass('active');
+                $('#stationList').show();
+                // show 'To' row again
+				$('#pTo').show();
+                $('#txtTo').text('---');
+                currentQty = 1;
+                $('#txtQty').text('1');
+                $('#txtUnitPrice').text('0 VNĐ');
+                $('#txtTotal').text('0 VNĐ');
+                $('#btn-next').text((currentLang === 'vn') ? 'TIẾP THEO' : 'NEXT');
+                $('#btn-cancell').text((currentLang === 'vn') ? 'HỦY' : 'CANCEL');
+                $('#btn-plus, #btn-minus').prop('disabled', false);
+                $('#btn-next').prop('disabled', true);
+                updateStaticText();
+            } else {
+                selectedDestId = null;
+                currentQty = 1;
+                $('#txtQty').text('1');
+                $('#txtTo').text('---');
+                $('#txtUnitPrice').text('0 VNĐ');
+                $('#txtTotal').text('0 VNĐ');
+                $('#btn-next').prop('disabled', true);
+                $('.btn-station').removeClass('selected-to');
+            }
         });
 
         $('#btn-next').click(function () {
 
-            // 1. Kiểm tra nếu người dùng chưa chọn ga
-
-            if (!selectedDestId || $('#txtTo').text() === '---') {
-
-                const msg = (currentLang === 'vn') ? "Vui lòng chọn ga đến!" : "Please select destination!";
-
-                alert(msg);
-
+            // If 1-day ticket, skip destination validation and go straight to payment
+            if (currentTicketType === '1day') {
+                const toStation = 'Vé 1 ngày';
+                const qty = currentQty; // allow multiple 1-day tickets
+                const total = $('#txtTotal').text();
+                window.location.href = `/Home/Payment?toStation=${encodeURIComponent(toStation)}&qty=${qty}&total=${encodeURIComponent(total)}&ticketType=${encodeURIComponent(currentTicketType)}`;
                 return;
-
             }
+
+            // 1. Kiểm tra nếu người dùng chưa chọn ga
+            if (!selectedDestId || $('#txtTo').text() === '---') {
+                const msg = (currentLang === 'vn') ? "Vui lòng chọn ga đến!" : "Please select destination!";
+                alert(msg);
+                return;
+            }
+
             const toStation = $('#txtTo').text();
-
             const qty = currentQty;
-
             const total = $('#txtTotal').text();
-
             const selectedStation = stations.find(s => s.id === selectedDestId);
             const stEN = selectedStation ? selectedStation.nameEN.replace(/\s+/g, '_') : "Unknown";
 
