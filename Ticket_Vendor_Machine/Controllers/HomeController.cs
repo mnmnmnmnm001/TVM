@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using Ticket_Vendor_Machine.ServiceFunction;
@@ -16,27 +14,20 @@ namespace Ticket_Vendor_Machine.Controllers
             return View();
         }
 
-
-        // Thêm dấu ? sau int hoặc gán = 1 để tránh lỗi null
         [ValidateInput(false)]
         public ActionResult Payment(string toStation, int? qty, string total, string ticketType, string lang = "vn", string stEN = "")
         {
-
             ViewBag.ToStation = toStation ?? "---";
-
             ViewBag.Quantity = qty ?? 1;
-
             ViewBag.Total = total ?? "0 VNĐ";
-
             ViewBag.Lang = lang;
-
             ViewBag.TicketType = string.IsNullOrEmpty(ticketType) ? "single" : ticketType;
             ViewBag.StEN = string.IsNullOrEmpty(stEN) ? "---" : stEN;
+
             switch (ViewBag.TicketType as string)
             {
                 case "1day":
                     ViewBag.TicketTypeLabel = "Vé 1 ngày";
-
                     ViewBag.ValidUntil = DateTime.Now.ToString("dd/MM/yy");
                     break;
                 case "single":
@@ -48,30 +39,20 @@ namespace Ticket_Vendor_Machine.Controllers
             return View();
         }
 
-
         [ValidateInput(false)]
         public ActionResult Generate(string toStation, int? qty, string total)
         {
             var reportPath = Path.Combine(Server.MapPath("~/Reports/Ticket.rdlc"));
             LocalReport localReport = new LocalReport { ReportPath = reportPath };
 
-            // Khởi tạo tham số
             ReportParameter[] parameters = new ReportParameter[3];
-
-            // 1. toStation gửi dạng Text (Nhà hát TP, Văn Thánh...)
             string decodedToStation = HttpUtility.HtmlDecode(toStation ?? "---");
             parameters[0] = new ReportParameter("pToStation", decodedToStation);
-
-            // 2. pQty gửi dạng chuỗi số (RDLC sẽ tự ép về Integer như bạn đã chỉnh)
-            // Dùng .ToString() để chuyển từ int sang string trước khi gửi
             parameters[1] = new ReportParameter("pQty", (qty ?? 1).ToString());
-
-            // 3. pTotal gửi dạng Text (Bao gồm cả chữ VNĐ)
             parameters[2] = new ReportParameter("pTotal", total ?? "0 VNĐ");
 
             localReport.SetParameters(parameters);
 
-            // ... phần xuất PDF giữ nguyên ...
             byte[] renderedBytes = localReport.Render("PDF");
             return File(renderedBytes, "application/pdf", "MetroTicket.pdf");
         }
@@ -84,18 +65,19 @@ namespace Ticket_Vendor_Machine.Controllers
             if (quantity < 1) quantity = 1;
             if (quantity > 9) quantity = 9;
 
-            decimal unitFare = _fareCalc.GetUnitFare(destinationId);
-            decimal totalFare = _fareCalc.GetTotalFare(destinationId, quantity);
-
-            // If user selects 1-day ticket, use fixed daily price per passenger
+            // If user selects 1-day ticket, return fixed 30,000 VND per passenger
             if (!string.IsNullOrEmpty(ticketType) && ticketType == "1day")
             {
-                unitFare = 30000m; // fixed price per passenger for 1-day ticket
-                totalFare = unitFare * quantity;
+                decimal unitFare = 30000m;
+                decimal totalFare = unitFare * quantity;
+                return Json(new { unitFare, totalFare }, JsonRequestBehavior.AllowGet);
             }
 
-            return Json(new { unitFare, totalFare }, JsonRequestBehavior.AllowGet);
-        }
+            // Single-journey (default) behavior:
+            decimal unit = _fareCalc.GetUnitFare(destinationId);
+            decimal total = _fareCalc.GetTotalFare(destinationId, quantity);
 
+            return Json(new { unitFare = unit, totalFare = total }, JsonRequestBehavior.AllowGet);
+        }
     }
 }
